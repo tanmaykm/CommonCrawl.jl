@@ -5,39 +5,39 @@ Interface to the [common crawl dataset on Amazon S3](http://aws.amazon.com/datas
 
 ## Usage
 
-Create an instance of the corpus as:
+An instance of the corpus is obtained as:
 ````
 cc = CrawlCorpus(cache_location::String, debug::Bool=false)
 ````
-Since the crawl corpus files are large, the files are cached locally by default at `cache_location`. Accessing a file downloads the complete file and subsequent calls to read are served locally.
+Since the crawl corpus files are large, they are cached locally by default at `cache_location`. The first time a file is accessed, it is downloaded in full into the cache location. Subsequent calls to read are served locally.
 
-All cached files, or a particular cached archive file can be deleted through methods:
+All cached files, or a particular cached archive file can be deleted:
 ````
 clear_cache(cc::CrawlCorpus)
 clear_cache(cc::CrawlCorpus, archive::URI)
 ````
 
-To list segments or archive files in a particular segment as array of URI objects:
+Segments and archive files in a segment can be listed as: 
 ````
-segments(cc::CrawlCorpus)
-archives(cc::CrawlCorpus, segment::String)
+segment_names = segments(cc::CrawlCorpus)
+archive_uris = archives(cc::CrawlCorpus, segment::String)
 ````
 
-The following method lists archive files as an array of URI objects across segments:
+Archive files across all segments can be accessed easily as: 
 ````
-archives(cc::CrawlCorpus, count::Int=0)
+archive_uris = archives(cc::CrawlCorpus, count::Int=0)
 ````
-Passing count as 0 lists all available archive files (which can be large).
+Passing count as `0` lists all available archive files (which can be large).
 
 A particular archive file can be opened as:
 ````
 open(cc::CrawlCorpus, archive::URI)
 ````
 
-And files can be read from an opened archive as:
+And crawl entries can be read from an opened archive as:
 ````
-read_entry(cc::CrawlCorpus, f::IO, mime_part::String="")
-read_entries(cc::CrawlCorpus, f::IO, mime_part::String="", num_entries::Int=0)
+entry = read_entry(cc::CrawlCorpus, f::IO, mime_part::String="")
+entries = read_entries(cc::CrawlCorpus, f::IO, mime_part::String="", num_entries::Int=0)
 ````
-Method `read_entry` returns an `ArchiveEntry` instance corresponding to the next entry in the file with mime type beginning with `mime_part`. Method `read_entries` returns an array of `ArchiveEntry` objects. If `num_entries` is 0, all matching entries in the archive file are returned.
+Method `read_entry` returns an `ArchiveEntry` instance corresponding to the next entry in the file with mime type beginning with `mime_part`. Method `read_entries` returns an array of `ArchiveEntry` objects. If `num_entries` is `0`, all matching entries in the archive file are returned.
 

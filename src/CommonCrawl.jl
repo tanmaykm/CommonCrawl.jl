@@ -8,12 +8,12 @@ using URIParser
 
 import Base.open
 
-export CommonCrawl, clear_cache, segments, archives, open, read_entry, read_entries
+export CrawlCorpus, clear_cache, segments, archives, open, read_entry, read_entries
 
-type CommonCrawl
+type CrawlCorpus
     cloc::String
     debug::Bool
-    function CommonCrawl(cache_location::String, debug=false)
+    function CrawlCorpus(cache_location::String, debug::Bool=false)
         isempty(cache_location) && error("cache location must be set to a valid directory")
         new(cache_location, debug)
     end
@@ -25,20 +25,20 @@ type ArchiveEntry
     data::Array
 end
 
-function clear_cache(cc::CommonCrawl)
+function clear_cache(cc::CrawlCorpus)
     for f in readdir(cc.cloc)
         rm(f)
     end   
 end
 
-function clear_cache(cc::CommonCrawl, archive::URI)
+function clear_cache(cc::CrawlCorpus, archive::URI)
     fname = basename(archive.path)
     docsfile = joinpath(cc.cloc, fname)
     isfile(docsfile) && rm(docsfile)
     nothing
 end
 
-function segments(cc::CommonCrawl)
+function segments(cc::CrawlCorpus)
     file = joinpath(cc.cloc, "valid_segments.txt")
     if !isfile(file)
         cc.debug && println("fetching valid segments...")
@@ -49,16 +49,16 @@ function segments(cc::CommonCrawl)
         close(os)
         cc.debug && println("\tfetched in $(time()-t1)secs")
     end
-    segments = String[]
+    segnames = String[]
     open(file) do f
         for str in readlines(f)
-            push!(segments, chomp(str))
+            push!(segnames, chomp(str))
         end
     end
-    segments
+    segnames
 end
 
-function archives(cc:CommonCrawl, segment::String)
+function archives(cc::CrawlCorpus, segment::String)
     file = joinpath(cc.cloc, string("segment_list_",segment,".txt"))
     arcnames = URI[]
     if !isfile(file)
@@ -94,7 +94,7 @@ function archives(cc:CommonCrawl, segment::String)
     arcnames
 end
 
-function archives(cc::CommonCrawl, count::Int=0)
+function archives(cc::CrawlCorpus, count::Int=0)
     arcs = URI[]
     for seg in segments(cc)
         arcs_in_seg = cc_archives_in_segment(segment)
@@ -104,7 +104,7 @@ function archives(cc::CommonCrawl, count::Int=0)
     (count == 0) ? arcs : arcs[1:count]
 end
 
-function open(cc::CommonCrawl, archive::URI)
+function open(cc::CrawlCorpus, archive::URI)
     fname = basename(archive.path)
     docsfile = joinpath(cc.cloc, fname)
     cc.debug && println("opening $s3Uri. ($docsfile)")
@@ -121,7 +121,7 @@ function open(cc::CommonCrawl, archive::URI)
 end
 
 
-function read_entry(cc::CommonCrawl, f::IO, mime_part::String="")
+function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="")
     arc = ArchiveEntry("","",[])
     while true
         l = readline(f)
@@ -146,7 +146,7 @@ function read_entry(cc::CommonCrawl, f::IO, mime_part::String="")
     arc
 end
 
-function read_entries(cc::CommonCrawl, f::IO, mime_part::String="", num_entries::Int=0)
+function read_entries(cc::CrawlCorpus, f::IO, mime_part::String="", num_entries::Int=0)
     arcs = ArchiveEntry[]
     while !eof(f) 
         (num_entries > 0) && (length(arc) >= num_entries) && break

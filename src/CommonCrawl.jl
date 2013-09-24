@@ -109,7 +109,7 @@ end
 
 function open(cc::CrawlCorpus, archive::URI)
     fname = basename(archive.path)
-    docsfile = joinpath(archive.cloc, fname)
+    docsfile = joinpath(cc.cloc, fname)
     cc.debug && println("opening $archive. ($docsfile)")
     if !isfile(docsfile)
         cc.debug && println("\tdownloading $archive to $docsfile")

@@ -5,7 +5,6 @@ cache_dir = joinpath(tempdir(), "cc")
 mkdir(cache_dir)
 
 cc = CrawlCorpus(cache_dir, true)
-println("fetching segments...")
 segs = segments(cc)
 @assert !isempty(segs)
 for seg in segs[1:5]

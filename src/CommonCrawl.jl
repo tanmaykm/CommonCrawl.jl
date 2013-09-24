@@ -26,14 +26,17 @@ type ArchiveEntry
 end
 
 function clear_cache(cc::CrawlCorpus)
+    cc.debug && println("clearing cached files...")
     for f in readdir(cc.cloc)
-        rm(f)
+        cc.debug && println("\t$f")
+        rm(joinpath(cc.cloc, f))
     end   
 end
 
 function clear_cache(cc::CrawlCorpus, archive::URI)
     fname = basename(archive.path)
     docsfile = joinpath(cc.cloc, fname)
+    cc.debug && println("clearing cached file $fname")
     isfile(docsfile) && rm(docsfile)
     nothing
 end
@@ -97,7 +100,7 @@ end
 function archives(cc::CrawlCorpus, count::Int=0)
     arcs = URI[]
     for seg in segments(cc)
-        arcs_in_seg = cc_archives_in_segment(segment)
+        arcs_in_seg = archives(cc, seg)
         append!(arcs, arcs_in_seg)
         (count > 0) && (length(arcs) >= count) && break
     end
@@ -106,14 +109,14 @@ end
 
 function open(cc::CrawlCorpus, archive::URI)
     fname = basename(archive.path)
-    docsfile = joinpath(cc.cloc, fname)
-    cc.debug && println("opening $s3Uri. ($docsfile)")
+    docsfile = joinpath(carchive.cloc, fname)
+    cc.debug && println("opening $archive. ($docsfile)")
     if !isfile(docsfile)
-        cc.debug && println("\tdownloading $s3Uri to $docsfile")
+        cc.debug && println("\tdownloading $archive to $docsfile")
         t1 = time()
         os = open(docsfile, "w")
         ho = HTTPClient.HTTPC.RequestOptions(ostream=os)
-        get(string(s3Uri), ho)
+        get(string(archive), ho)
         close(os)
         cc.debug && println("\tdownloaded in $(time()-t1)secs")
     end
@@ -131,7 +134,7 @@ function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="")
         eof(f) && isempty(l) && break
         vs = split(l)
 
-        url = vs[1]
+        uri = vs[1]
         mime = vs[4]
         len = parseint(vs[5])
 
@@ -142,6 +145,7 @@ function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="")
         arc.data = read(f, Array(Uint8, len))
         arc.uri = uri
         arc.mime = mime
+        break
     end
     arc
 end
@@ -149,7 +153,7 @@ end
 function read_entries(cc::CrawlCorpus, f::IO, mime_part::String="", num_entries::Int=0)
     arcs = ArchiveEntry[]
     while !eof(f) 
-        (num_entries > 0) && (length(arc) >= num_entries) && break
+        (num_entries > 0) && (length(arcs) >= num_entries) && break
         arc = read_entry(cc, f, mime_part)
         isempty(arc.data) && continue
         push!(arcs, arc)

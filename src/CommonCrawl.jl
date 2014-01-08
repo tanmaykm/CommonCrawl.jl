@@ -124,7 +124,7 @@ function open(cc::CrawlCorpus, archive::URI)
 end
 
 
-function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="")
+function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="", metadata_only::Bool=false)
     arc = ArchiveEntry("","",[])
     while true
         l = readline(f)
@@ -142,7 +142,11 @@ function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="")
             skip(f, len)
             continue 
         end
-        arc.data = read(f, Array(Uint8, len))
+        if metadata_only
+            skip(f, len)
+        else
+            arc.data = read(f, Array(Uint8, len))
+        end
         arc.uri = uri
         arc.mime = mime
         break
@@ -150,12 +154,12 @@ function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="")
     arc
 end
 
-function read_entries(cc::CrawlCorpus, f::IO, mime_part::String="", num_entries::Int=0)
+function read_entries(cc::CrawlCorpus, f::IO, mime_part::String="", num_entries::Int=0, metadata_only::Bool=false)
     arcs = ArchiveEntry[]
     while !eof(f) 
         (num_entries > 0) && (length(arcs) >= num_entries) && break
-        arc = read_entry(cc, f, mime_part)
-        isempty(arc.data) && continue
+        arc = read_entry(cc, f, mime_part, metadata_only)
+        (!metadata_only) && isempty(arc.data) && continue
         push!(arcs, arc)
     end
     arcs

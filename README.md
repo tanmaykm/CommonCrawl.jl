@@ -36,8 +36,8 @@ open(cc::CrawlCorpus, archive::URI)
 
 And crawl entries can be read from an opened archive as:
 ````
-entry = read_entry(cc::CrawlCorpus, f::IO, mime_part::String="")
-entries = read_entries(cc::CrawlCorpus, f::IO, mime_part::String="", num_entries::Int=0)
+entry = read_entry(cc::CrawlCorpus, f::IO, mime_part::String="", metadata_only::Bool=false)
+entries = read_entries(cc::CrawlCorpus, f::IO, mime_part::String="", num_entries::Int=0, metadata_only::Bool=false)
 ````
-Method `read_entry` returns an `ArchiveEntry` instance corresponding to the next entry in the file with mime type beginning with `mime_part`. Method `read_entries` returns an array of `ArchiveEntry` objects. If `num_entries` is `0`, all matching entries in the archive file are returned.
+Method `read_entry` returns an `ArchiveEntry` instance corresponding to the next entry in the file with mime type beginning with `mime_part`. Method `read_entries` returns an array of `ArchiveEntry` objects. If `num_entries` is `0`, all matching entries in the archive file are returned. If `metadata_only` is true, only the file metadata (url and mime type) is populated in the entries.
 

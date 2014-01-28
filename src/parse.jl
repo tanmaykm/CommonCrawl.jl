@@ -20,7 +20,7 @@ type ArchiveEntry
     mime::String
     len::Int
     http_status::String
-    http_hdrs::Dict
+    http_hdrs::Dict{ASCIIString,String}
     data::Array
 end
 
@@ -119,18 +119,17 @@ function open(cc::CrawlCorpus, archive::URI)
         close(os)
         cc.debug && println("\tdownloaded in $(time()-t1)secs")
     end
-    GZip.open(docsfile, "r")
+    GZip.open(docsfile, "r", 8192*10)
 end
 
 
 function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="", metadata_only::Bool=false)
-    arc = ArchiveEntry("","",0,"",Dict(),[])
     while true
         l = readline(f)
         while !eof(f) && isempty(l)
             l = readline(f)
         end
-        eof(f) && isempty(l) && break
+        eof(f) && isempty(l) && return ArchiveEntry("","",0,"",Dict{ASCIIString,String}(),[])
         vs = split(l)
 
         uri = vs[1]
@@ -143,7 +142,8 @@ function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="", metadata_only:
         end
 
         # read the http header
-        hdrs = Dict{String,String}()
+        hdrs = Dict{ASCIIString,String}()
+        http_status = ""
         hdrlen = 0
         while !eof(f)
             l = readline(f)
@@ -154,24 +154,20 @@ function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="", metadata_only:
             if length(nv) == 2
                 hdrs[lowercase(strip(nv[1]))] = strip(nv[2])
             elseif beginswith(l, "HTTP")
-                arc.http_status = l
+                http_status = l
             end
         end
-        arc.http_hdrs = hdrs
 
         len -= hdrlen
         # read or skip the http data
+        data = []
         if metadata_only
             skip(f, len)
         else
-            arc.data = read(f, Array(Uint8, len))
+            data = read(f, Array(Uint8, len))
         end
-        arc.uri = uri
-        arc.mime = mime
-        arc.len = len
-        break
+        return ArchiveEntry(uri, mime, len, http_status, hdrs, data)
     end
-    arc
 end
 
 

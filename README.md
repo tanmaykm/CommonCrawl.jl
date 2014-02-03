@@ -1,6 +1,8 @@
 CommonCrawl.jl
 ==============
 
+[![Build Status](https://travis-ci.org/tanmaykm/CommonCrawl.jl.png)](https://travis-ci.org/tanmaykm/CommonCrawl.jl)
+
 Interface to the [common crawl dataset on Amazon S3](http://aws.amazon.com/datasets/41740)
 
 ## Usage

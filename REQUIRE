@@ -2,3 +2,4 @@ AWS
 GZip
 HTTPClient
 URIParser
+PublicSuffix

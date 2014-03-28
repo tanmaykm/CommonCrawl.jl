@@ -2,7 +2,7 @@ using CommonCrawl
 using URIParser
 
 cache_dir = joinpath(tempdir(), "cc")
-mkdir(cache_dir)
+!isdir(cache_dir) && mkdir(cache_dir)
 
 cc = CrawlCorpus(cache_dir, true)
 segs = segments(cc)

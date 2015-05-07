@@ -3,3 +3,4 @@ GZip
 HTTPClient
 URIParser
 PublicSuffix
+Compat

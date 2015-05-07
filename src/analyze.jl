@@ -1,43 +1,43 @@
 
 type HTTPHeaderStats
-    http_version::String
-    charset::String
-    server_make::String
-    server_version::String
+    http_version::AbstractString
+    charset::AbstractString
+    server_make::AbstractString
+    server_version::AbstractString
     
-    tld::String
-    public_suffix::String
+    tld::AbstractString
+    public_suffix::AbstractString
 end
 
 type CorpusStats
     ndocs::Int
 
-    http_versions::Dict{String,Int}
-    charsets::Dict{String,Int}
-    mime_types::Dict{String,Int}
-    server_makes::Dict{String,Int}
-    server_versions::Dict{String,Int}
+    http_versions::Dict{AbstractString,Int}
+    charsets::Dict{AbstractString,Int}
+    mime_types::Dict{AbstractString,Int}
+    server_makes::Dict{AbstractString,Int}
+    server_versions::Dict{AbstractString,Int}
 
-    tlds::Dict{String,Int}
-    public_suffixes::Dict{String,Int}
+    tlds::Dict{AbstractString,Int}
+    public_suffixes::Dict{AbstractString,Int}
 
     average_doc_size::Int
 
-    website_data_size::Dict{String,Int}
-    website_doc_count::Dict{String,Int}
+    website_data_size::Dict{AbstractString,Int}
+    website_doc_count::Dict{AbstractString,Int}
 
     function CorpusStats()
         new(0, 
-            Dict{String,Int}(),
-            Dict{String,Int}(),
-            Dict{String,Int}(),
-            Dict{String,Int}(),
-            Dict{String,Int}(),
-            Dict{String,Int}(),
-            Dict{String,Int}(),
+            Dict{AbstractString,Int}(),
+            Dict{AbstractString,Int}(),
+            Dict{AbstractString,Int}(),
+            Dict{AbstractString,Int}(),
+            Dict{AbstractString,Int}(),
+            Dict{AbstractString,Int}(),
+            Dict{AbstractString,Int}(),
             0,
-            Dict{String,Int}(),
-            Dict{String,Int}())
+            Dict{AbstractString,Int}(),
+            Dict{AbstractString,Int}())
     end
 end
 
@@ -67,8 +67,8 @@ function analyze_header(entry::ArchiveEntry)
     HTTPHeaderStats(http_version, charset, server_make, server_version, top_domain, public_suffix)
 end
 
-incr(d::Dict{String,Int}, key::String, v::Int=1) = (d[key] = (get(d, key, 0) + v))
-function incr(d::Dict{String,Int}, d2::Dict{String,Int})
+incr(d::Dict{AbstractString,Int}, key::AbstractString, v::Int=1) = (d[key] = (get(d, key, 0) + v))
+function incr(d::Dict{AbstractString,Int}, d2::Dict{AbstractString,Int})
     for (n,v) in d2
         incr(d, n, v)
     end

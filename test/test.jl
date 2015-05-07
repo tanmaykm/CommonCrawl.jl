@@ -29,4 +29,4 @@ end
 close(f)
 
 clear_cache(cc)
-rmdir(cache_dir)
+rm(cache_dir)

@@ -1,8 +1,8 @@
 
 type CrawlCorpus
-    cloc::String
+    cloc::AbstractString
     debug::Bool
-    function CrawlCorpus(cache_location::String, debug::Bool=false)
+    function CrawlCorpus(cache_location::AbstractString, debug::Bool=false)
         isempty(cache_location) && error("cache location must be set to a valid directory")
         new(cache_location, debug)
     end
@@ -16,11 +16,11 @@ end
 # public suffix of domain
 # second level domain
 type ArchiveEntry
-    uri::String
-    mime::String
+    uri::AbstractString
+    mime::AbstractString
     len::Int
-    http_status::String
-    http_hdrs::Dict{ASCIIString,String}
+    http_status::AbstractString
+    http_hdrs::Dict{ASCIIString,AbstractString}
     data::Array
 end
 
@@ -51,7 +51,7 @@ function segments(cc::CrawlCorpus)
         close(os)
         cc.debug && println("\tfetched in $(time()-t1)secs")
     end
-    segnames = String[]
+    segnames = AbstractString[]
     open(file) do f
         for str in readlines(f)
             push!(segnames, chomp(str))
@@ -60,7 +60,7 @@ function segments(cc::CrawlCorpus)
     segnames
 end
 
-function archives(cc::CrawlCorpus, segment::String)
+function archives(cc::CrawlCorpus, segment::AbstractString)
     file = joinpath(cc.cloc, string("segment_list_",segment,".txt"))
     arcnames = URI[]
     if !isfile(file)
@@ -123,26 +123,26 @@ function open(cc::CrawlCorpus, archive::URI)
 end
 
 
-function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="", metadata_only::Bool=false)
+function read_entry(cc::CrawlCorpus, f::IO, mime_part::AbstractString="", metadata_only::Bool=false)
     while true
         l = readline(f)
         while !eof(f) && isempty(l)
             l = readline(f)
         end
-        eof(f) && isempty(l) && return ArchiveEntry("","",0,"",Dict{ASCIIString,String}(),[])
+        eof(f) && isempty(l) && return ArchiveEntry("","",0,"",Dict{ASCIIString,AbstractString}(),[])
         vs = split(l)
 
         uri = vs[1]
         mime = vs[4]
-        len = parseint(vs[5])
+        len = parse(Int, vs[5])
 
-        if !isempty(mime_part) && !beginswith(mime, mime_part)
+        if !isempty(mime_part) && !startswith(mime, mime_part)
             skip(f, len)
             continue
         end
 
         # read the http header
-        hdrs = Dict{ASCIIString,String}()
+        hdrs = Dict{ASCIIString,AbstractString}()
         http_status = ""
         hdrlen = 0
         while !eof(f)
@@ -150,10 +150,10 @@ function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="", metadata_only:
             hdrlen += length(l)
             l = strip(l)
             isempty(l) && break
-            nv = split(l, ':', 2)
+            nv = split(l, ':'; limit=2)
             if length(nv) == 2
                 hdrs[lowercase(strip(nv[1]))] = strip(nv[2])
-            elseif beginswith(l, "HTTP")
+            elseif startswith(l, "HTTP")
                 http_status = l
             end
         end
@@ -171,7 +171,7 @@ function read_entry(cc::CrawlCorpus, f::IO, mime_part::String="", metadata_only:
 end
 
 
-function read_entries(cc::CrawlCorpus, f::IO, mime_part::String="", num_entries::Int=0, metadata_only::Bool=false)
+function read_entries(cc::CrawlCorpus, f::IO, mime_part::AbstractString="", num_entries::Int=0, metadata_only::Bool=false)
     arcs = ArchiveEntry[]
     while !eof(f) 
         (num_entries > 0) && (length(arcs) >= num_entries) && break
